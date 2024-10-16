@@ -228,8 +228,10 @@ public class VTOLController : MonoBehaviour
         // change the direction of the motor
         if (is_hover)
         {
-            propeller_back_left.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 140));
-            propeller_back_right.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 140));
+            //propeller_back_left.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 140));
+            //propeller_back_right.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 140));
+            propeller_back_left.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 180));
+            propeller_back_right.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 180));
         }
         else
         {
@@ -268,6 +270,7 @@ public class VTOLController : MonoBehaviour
         float PID_pitch_output = -PID_pitch.GetFactorFromPIDController(PID_pitch_gains, pitchError);
         float PID_roll_output = -PID_roll.GetFactorFromPIDController(PID_roll_gains, rollError);
         float PID_yaw_output = -PID_yaw.GetFactorFromPIDController(PID_yaw_gains, yawError);
+
         float PID_speed_output = -PID_speed.GetFactorFromPIDController(PID_speed_gains, speedError);
         float PID_lift_output = -PID_lift.GetFactorFromPIDController(PID_lift_gains, liftError);
 
@@ -284,7 +287,7 @@ public class VTOLController : MonoBehaviour
             //propellerForceFront = (lift + PID_lift_output - 2*PID_speed_output + (PID_pitch_output)) * 2f;
             propellerForceFront = Mathf.Lerp(
                 propellerForceFront,
-                lift + PID_lift_output + 2*PID_pitch_output,
+                lift * PID_lift_output + 2.2f*PID_pitch_output,
                 10 * Time.fixedDeltaTime
             );
             //Debug.Log(PID_lift_output + "|" + PID_speed_output + "|" + PID_pitch_output);
@@ -297,7 +300,7 @@ public class VTOLController : MonoBehaviour
             //propellerForceBR = (lift + PID_lift_output - PID_pitch_output + PID_roll_output + 30 * PID_yaw_output);
             propellerForceBR = Mathf.Lerp(
                 propellerForceBR,
-                lift + PID_lift_output - PID_pitch_output + 200 * PID_roll_output + 3000 * PID_yaw_output,
+                lift * PID_lift_output - PID_pitch_output + 200 * PID_roll_output + 3000 * PID_yaw_output,
                 10 * Time.fixedDeltaTime
             ); 
 
@@ -305,7 +308,7 @@ public class VTOLController : MonoBehaviour
             //propellerForceBL = (lift + PID_lift_output - PID_pitch_output - PID_roll_output - 30 * PID_yaw_output);
             propellerForceBL = Mathf.Lerp(
                 propellerForceBL,
-                lift + PID_lift_output - PID_pitch_output - 200 * PID_roll_output - 3000 * PID_yaw_output,
+                lift * PID_lift_output - PID_pitch_output - 200 * PID_roll_output - 3000 * PID_yaw_output,
                 10 * Time.fixedDeltaTime
             );
 
@@ -384,7 +387,7 @@ public class VTOLController : MonoBehaviour
             xAngle *= -1f;
         }
 
-        return xAngle;
+        return xAngle + (track_target.transform.position.x - transform.position.x) * 5f;
     }
 
     //Roll is rotation around z-axis
@@ -406,7 +409,7 @@ public class VTOLController : MonoBehaviour
             zAngle *= -1f;
         }
 
-        return zAngle;
+        return zAngle + (track_target.transform.position.z - transform.position.z) * 5f;
     }
 
 
@@ -424,7 +427,7 @@ public class VTOLController : MonoBehaviour
 
     private float GetLiftError()
     {
-        return Vector3.Dot(rb.velocity, transform.up);
+        return Vector3.Dot(rb.velocity, transform.up) - (track_target.transform.position.y - transform.position.y) * 0.5f;
     }
 
     //Wrap between 0 and 360 degrees
